@@ -1,230 +1,421 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SmartBusiners AI - Professional Agentic Dashboard</title>
-  <meta name="description" content="Painel de controle e execução em tempo real do sistema SmartBusiners AI Engine em Python com Google Gemini.">
+  <title>SmartBusiners · Commercial AI Engine & Panel</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="app-container">
-    <!-- Header -->
-    <header class="app-header">
-      <div class="brand">
-        <div class="brand-icon">⚡</div>
-        <div class="brand-text">
-          <h1>SmartBusiners <span class="badge">AI Engine</span></h1>
-          <span class="subtext">Google Gemini & Antigravity Powered</span>
-        </div>
-      </div>
 
-      <div class="header-controls">
-        <div class="status-indicator" id="authBadge" onclick="openAuthModal()">
-          <span class="dot yellow"></span>
-          <span class="status-text" id="authStatusText">Verificando Google API...</span>
-        </div>
+<div id="app">
 
-        <div class="workspace-pill" title="Clique para alterar workspace">
-          <span class="icon">📁</span>
-          <span class="ws-path" id="activeWorkspace">Carregando...</span>
-        </div>
-
-        <button class="btn btn-outline" id="btnCliHelp" onclick="openCliModal()">
-          <span class="icon">💻</span> Comandos CLI
-        </button>
-
-        <button class="btn btn-primary" id="btnSettings" onclick="openSettingsModal()">
-          <span class="icon">⚙</span> Configurações
-        </button>
-      </div>
-    </header>
-
-    <!-- Main Layout -->
-    <div class="main-body">
-      <!-- Sidebar -->
-      <aside class="sidebar">
-        <div class="sidebar-section">
-          <div class="section-title">
-            <span>Sessões Recentes</span>
-            <button class="btn-icon" id="btnNewSession" title="Nova Conversa" onclick="startNewSession()">+</button>
-          </div>
-          <div class="session-list" id="sessionList">
-            <!-- Sessões dinâmicas -->
-          </div>
-        </div>
-
-        <div class="sidebar-section">
-          <div class="section-title">Explorador de Arquivos</div>
-          <div class="file-tree" id="fileTree">
-            <!-- Arquivos do workspace -->
-          </div>
-        </div>
-
-        <div class="sidebar-section">
-          <div class="section-title">Ferramentas Ativas</div>
-          <div class="tools-pills" id="toolsList">
-            <!-- Ferramentas -->
-          </div>
-        </div>
-      </aside>
-
-      <!-- Central View -->
-      <main class="content-area">
-        <!-- Tab Bar -->
-        <div class="view-tabs">
-          <button class="tab-btn active" data-tab="chatView">💬 Canvas do Agente</button>
-          <button class="tab-btn" data-tab="terminalView">📟 Terminal & Processos em Tempo Real</button>
-        </div>
-
-        <!-- Chat / Agent Canvas View -->
-        <div class="tab-content active" id="chatView">
-          <div class="chat-history" id="chatHistory">
-            <div class="welcome-card">
-              <div class="welcome-icon">🚀</div>
-              <h2>Bem-vindo ao SmartBusiners AI Engine</h2>
-              <p>Execute tarefas de desenvolvimento de software, automação de código, análise corporativa e comandos no terminal de forma autônoma ou interativa.</p>
-              <div class="preset-prompts">
-                <button class="preset-btn" onclick="usePreset('Inspecione a estrutura deste projeto e gere um relatório dos componentes principais.')">📊 Mapear Arquitetura</button>
-                <button class="preset-btn" onclick="usePreset('Crie um teste unitário abrangente para os módulos do projeto.')">🧪 Gerar Testes Unitários</button>
-                <button class="preset-btn" onclick="usePreset('Analise o código em busca de melhorias de performance e segurança.')">🛡 Auditoria de Código</button>
-                <button class="preset-btn" onclick="usePreset('Explique como executar o CLI e quais ferramentas estão disponíveis.')">💡 Guia do CLI</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Realtime Terminal View -->
-        <div class="tab-content" id="terminalView">
-          <div class="terminal-container">
-            <div class="terminal-header">
-              <div class="term-dots">
-                <span class="dot red"></span>
-                <span class="dot yellow"></span>
-                <span class="dot green"></span>
-              </div>
-              <span class="term-title">smartbusiners-process-stream</span>
-              <button class="btn-clear-term" onclick="clearTerminal()">Limpar</button>
-            </div>
-            <div class="terminal-body" id="terminalOutput">
-              <div class="term-line info">[SISTEMA] SmartBusiners WebSocket Stream conectado. Pronto para execução.</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Prompt Bar -->
-        <div class="prompt-bar-container">
-          <div class="prompt-tools-bar">
-            <div class="model-select-wrapper">
-              <label for="modelSelect">Modelo:</label>
-              <select id="modelSelect">
-                <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Recomendado)</option>
-                <option value="gemini-2.5-pro">Gemini 2.5 Pro (Deep Reasoning)</option>
-                <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
-              </select>
-            </div>
-
-            <div class="param-item">
-              <label>Temperatura: <span id="tempValue">0.7</span></label>
-              <input type="range" id="tempSlider" min="0" max="1" step="0.1" value="0.7" oninput="document.getElementById('tempValue').innerText = this.value">
-            </div>
-
-            <div class="status-indicator-mini" id="agentStatus">
-              <span class="dot green"></span> Pronto
-            </div>
-          </div>
-
-          <form class="prompt-input-form" id="promptForm" onsubmit="handleSendPrompt(event)">
-            <textarea 
-              id="promptInput" 
-              placeholder="Descreva a tarefa ou comando para o SmartBusiners executar..." 
-              rows="2"
-              onkeydown="handleKeyDown(event)"
-            ></textarea>
-            <button type="submit" class="btn btn-primary btn-send" id="btnSend">
-              <span>Executar</span> ⚡
-            </button>
-          </form>
-        </div>
-      </main>
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <span class="logo-badge">
+        <span class="logo-smart">SMART</span><span class="logo-businers">BUSINERS</span>
+      </span>
+      <span class="logo-divider"></span>
+      <span class="logo-sub">
+        <strong>AI Engine</strong> · Google Gemini BYOK
+      </span>
     </div>
-  </div>
 
-  <!-- Modal: Autenticação Google BYOK -->
-  <div class="modal-overlay" id="authModal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3>🔑 Conectar Conta Google (BYOK)</h3>
-        <button class="btn-close" onclick="closeAuthModal()">✕</button>
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="home" onclick="showTab('home')">🏠 Home</button>
+      <button class="tab-btn" data-tab="commands" onclick="showTab('commands')">⚡ Commands</button>
+      <button class="tab-btn" data-tab="prompts" onclick="showTab('prompts')">💬 Prompts</button>
+      <button class="tab-btn" data-tab="sprints" onclick="showTab('sprints')">🚀 Sprints (Kanban)</button>
+      <button class="tab-btn" data-tab="executions" onclick="showTab('executions')">📟 Execuções</button>
+      <button class="tab-btn" data-tab="ctx" onclick="showTab('ctx')">📂 Context Store</button>
+      <button class="tab-btn" data-tab="cost" onclick="showTab('cost')">📊 Cost & Quota</button>
+      <button class="tab-btn" data-tab="settings" onclick="showTab('settings')">⚙ Configurações</button>
+    </nav>
+
+    <div class="header-right">
+      <button class="btn btn-terminal-nav" onclick="openTerminalDirectly('smartbusiners chat')" title="Abrir terminal interativo nativo no workspace">
+        💻 Abrir CLI no Terminal
+      </button>
+      <button class="btn-theme-toggle" id="btn-theme-toggle" onclick="toggleTheme()" title="Alternar Dark/Light mode">🌙</button>
+    </div>
+  </header>
+
+  <!-- MAIN VIEW CONTAINER -->
+  <main>
+
+    <!-- TAB: HOME -->
+    <div id="tab-home" class="tab-panel active">
+      <div class="hero-card">
+        <div class="hero-content">
+          <h1>⚡ SmartBusiners AI Engine</h1>
+          <p>Sistema inteligente em Python com integração profunda entre CLI de terminal e painel Web em tempo real. Powered by Google Gemini (BYOK).</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" onclick="openRunModal()">⚡ Executar Tarefa Rápida</button>
+            <button class="btn btn-secondary" onclick="openTerminalDirectly('smartbusiners chat')">💻 Iniciar Chat no Terminal</button>
+            <button class="btn btn-outline" onclick="showTab('sprints')">🚀 Ver Kanban de Sprints</button>
+          </div>
+        </div>
+        <div class="hero-badge-box">
+          <div class="status-pill" id="homeApiStatus" onclick="showTab('settings')">
+            <span class="dot yellow"></span>
+            <span id="homeApiText">Carregando status Google API...</span>
+          </div>
+          <div class="ws-pill" id="homeWsPill" title="Workspace ativo">
+            📁 <span id="homeWsText">Carregando workspace...</span>
+          </div>
+        </div>
       </div>
-      <div class="modal-body">
-        <p>O SmartBusiners utiliza a sua conta Google (Google AI Studio ou Vertex AI). Todas as chamadas de IA e ferramentas utilizam a sua própria cota.</p>
-        
+
+      <!-- Quick Run Bar -->
+      <div class="section-header" style="margin-top:24px">
+        <h2 class="section-title">Execução Rápida via Web / CLI</h2>
+        <small style="color:var(--text-dim)">Envie uma instrução para o motor autônomo executar e monitorar em tempo real</small>
+      </div>
+      <div class="quick-run-box">
+        <input type="text" id="quickRunInput" placeholder="Ex: Crie um endpoint em FastAPI para listar usuários..." class="form-control form-control-lg" onkeydown="if(event.key==='Enter') executeQuickRun()">
+        <button class="btn btn-primary btn-lg" onclick="executeQuickRun()">Disparar Execução ⚡</button>
+        <button class="btn btn-secondary btn-lg" onclick="executeQuickRunInTerminal()" title="Abrir execução diretamente em janela de terminal nativa">Executar no Terminal 💻</button>
+      </div>
+
+      <!-- Modo de Ação e Parâmetros -->
+      <div class="home-grid-2col" style="margin-top:28px">
+        <div class="card">
+          <div class="card-header">
+            <h3>🎛 Modo de Autonomia do Agente</h3>
+          </div>
+          <div class="mode-selector-grid">
+            <div class="mode-card active" data-mode="interactive" onclick="selectActionMode('interactive')">
+              <span class="mode-icon">💬</span>
+              <strong>Interativo</strong>
+              <small>Pergunta antes de executar ferramentas críticas</small>
+            </div>
+            <div class="mode-card" data-mode="auto_approve" onclick="selectActionMode('auto_approve')">
+              <span class="mode-icon">⚡</span>
+              <strong>Auto-Aprovação</strong>
+              <small>Executa tarefas autônomas sem confirmação manual</small>
+            </div>
+            <div class="mode-card" data-mode="read_only" onclick="selectActionMode('read_only')">
+              <span class="mode-icon">🛡</span>
+              <strong>Somente Leitura</strong>
+              <small>Apenas inspeciona e planeja sem alterar arquivos</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>🤖 Modelo Google Gemini Ativo</h3>
+          </div>
+          <div class="form-group">
+            <label>Selecione o modelo principal:</label>
+            <select id="homeModelSelect" class="form-control" onchange="saveActiveModel(this.value)">
+              <option value="gemini-3.7-flash" selected>Gemini 3.7 Flash (Recomendado - Última Geração)</option>
+              <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+              <option value="gemini-flash-latest">Gemini Flash Latest</option>
+              <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro Preview (Deep Reasoning)</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-top:12px">
+            <label>Temperatura: <span id="homeTempVal">0.7</span></label>
+            <input type="range" id="homeTempSlider" min="0" max="1" step="0.1" value="0.7" oninput="document.getElementById('homeTempVal').innerText = this.value; saveActiveTemp(this.value)">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: COMMANDS -->
+    <div id="tab-commands" class="tab-panel">
+      <div class="section-header">
+        <h2 class="section-title">Comandos Personalizados & Ações Rápidas</h2>
+        <button class="btn btn-primary" onclick="openNewCommandModal()">+ Novo Comando</button>
+      </div>
+      <div id="commands-list" class="card-grid"></div>
+    </div>
+
+    <!-- TAB: PROMPTS -->
+    <div id="tab-prompts" class="tab-panel">
+      <div class="section-header">
+        <h2 class="section-title">Templates de Prompts & Personas</h2>
+        <button class="btn btn-primary" onclick="openNewPromptModal()">+ Novo Prompt</button>
+      </div>
+      <div id="prompts-list" class="card-grid"></div>
+    </div>
+
+    <!-- TAB: SPRINTS (KANBAN) -->
+    <div id="tab-sprints" class="tab-panel">
+      <div class="section-header">
+        <h2 class="section-title">Quadro de Tarefas & Sprints</h2>
+        <button class="btn btn-primary" onclick="openNewTaskModal()">+ Nova Tarefa</button>
+      </div>
+
+      <div class="kanban-board">
+        <div class="kanban-column" id="col-open">
+          <div class="kanban-col-header">
+            <span class="col-title">📋 A Fazer (Open)</span>
+            <span class="badge-count" id="count-open">0</span>
+          </div>
+          <div class="kanban-cards-container" id="cards-open"></div>
+        </div>
+
+        <div class="kanban-column" id="col-in_progress">
+          <div class="kanban-col-header">
+            <span class="col-title">⚡ Em Progresso</span>
+            <span class="badge-count" id="count-in_progress">0</span>
+          </div>
+          <div class="kanban-cards-container" id="cards-in_progress"></div>
+        </div>
+
+        <div class="kanban-column" id="col-done">
+          <div class="kanban-col-header">
+            <span class="col-title">✔ Concluído (Done)</span>
+            <span class="badge-count" id="count-done">0</span>
+          </div>
+          <div class="kanban-cards-container" id="cards-done"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: EXECUÇÕES -->
+    <div id="tab-executions" class="tab-panel">
+      <div class="section-header">
+        <h2 class="section-title">Monitor de Execuções & Processos em Tempo Real</h2>
+        <button class="btn btn-primary" onclick="openRunModal()">+ Nova Execução</button>
+      </div>
+
+      <div class="executions-layout">
+        <div class="executions-table-wrap card">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Título / Comando</th>
+                <th>Status</th>
+                <th>Iniciado em</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="executions-table-body"></tbody>
+          </table>
+        </div>
+
+        <!-- Live Terminal Stream Box -->
+        <div class="terminal-card" id="activeTerminalBox">
+          <div class="terminal-header">
+            <div class="term-dots">
+              <span class="dot red"></span>
+              <span class="dot yellow"></span>
+              <span class="dot green"></span>
+            </div>
+            <span class="term-title" id="activeExecTitle">Selecione uma execução para ver os logs ao vivo</span>
+            <div class="term-actions">
+              <button class="btn-xs btn-danger" id="btnStopExec" onclick="stopCurrentExecution()" style="display:none">Parar Processo</button>
+              <button class="btn-xs" onclick="clearActiveTerminal()">Limpar</button>
+            </div>
+          </div>
+          <div class="terminal-body" id="liveTerminalOutput">
+            <div class="term-line info">[SISTEMA] Monitor de logs em tempo real pronto.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: CONTEXT STORE -->
+    <div id="tab-ctx" class="tab-panel">
+      <div class="section-header">
+        <h2 class="section-title">Explorador de Arquivos & Contexto do Workspace</h2>
+        <button class="btn btn-secondary" onclick="loadWorkspaceFiles()">🔄 Atualizar Arquivos</button>
+      </div>
+      <div class="card" style="padding: 16px;">
+        <div class="file-tree-grid" id="workspaceFilesGrid"></div>
+      </div>
+    </div>
+
+    <!-- TAB: COST & QUOTA -->
+    <div id="tab-cost" class="tab-panel">
+      <div class="section-header">
+        <h2 class="section-title">Monitor de Consumo & Quotas da Google API</h2>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">Requisições Hoje</span>
+          <span class="stat-value" id="cost-today-req">--</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Tokens Processados Hoje</span>
+          <span class="stat-value" id="cost-today-tokens">--</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Custo Estimado Hoje</span>
+          <span class="stat-value" id="cost-today-usd">--</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Status da Cota Google</span>
+          <span class="stat-value stat-ok" id="cost-quota-status">Ativa / OK</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: CONFIGURAÇÕES -->
+    <div id="tab-settings" class="tab-panel">
+      <div class="section-header">
+        <h2 class="section-title">Configurações do Sistema & Autenticação Google (BYOK)</h2>
+      </div>
+      <div class="card" style="max-width: 650px;">
         <div class="form-group">
-          <label for="apiKeyInput">Google Gemini API Key:</label>
-          <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="form-control">
-          <small>Obtenha gratuitamente sua chave no <a href="https://aistudio.google.com/" target="_blank">Google AI Studio</a>.</small>
+          <label>Google Gemini API Key (BYOK):</label>
+          <input type="password" id="cfgApiKeyInput" class="form-control" placeholder="AIzaSy...">
+          <small style="color:var(--text-dim)">Obtenha sua chave no <a href="https://aistudio.google.com/" target="_blank" style="color:var(--brand)">Google AI Studio</a>.</small>
+        </div>
+        <div style="margin-top: 12px;">
+          <button class="btn btn-primary" onclick="saveSettingsAuth()">Validar & Salvar Chave Google</button>
         </div>
 
-        <div id="authResultBox" class="alert-box" style="display:none;"></div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeAuthModal()">Cancelar</button>
-        <button class="btn btn-primary" onclick="saveApiKey()">Validar e Salvar</button>
-      </div>
-    </div>
-  </div>
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
 
-  <!-- Modal: Guia CLI -->
-  <div class="modal-overlay" id="cliModal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3>💻 Guia de Uso no Terminal (CLI)</h3>
-        <button class="btn-close" onclick="closeCliModal()">✕</button>
-      </div>
-      <div class="modal-body">
-        <p>Você pode invocar o SmartBusiners a qualquer momento diretamente no seu terminal ou PowerShell:</p>
-        <pre class="code-block"><code># Chat interativo contínuo
-smartbusiners chat
-
-# Executar uma tarefa autônoma
-smartbusiners run "Crie uma API REST em FastAPI para gerenciar produtos"
-
-# Configurar chave Google
-smartbusiners auth
-
-# Iniciar esta interface Web
-smartbusiners gui</code></pre>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-primary" onclick="closeCliModal()">Entendi</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal: Configurações -->
-  <div class="modal-overlay" id="settingsModal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3>⚙ Configurações do Sistema</h3>
-        <button class="btn-close" onclick="closeSettingsModal()">✕</button>
-      </div>
-      <div class="modal-body">
         <div class="form-group">
-          <label for="cfgWorkspace">Caminho do Workspace:</label>
-          <input type="text" id="cfgWorkspace" class="form-control">
+          <label>Caminho Padrão do Workspace:</label>
+          <input type="text" id="cfgWorkspaceInput" class="form-control">
+        </div>
+        <div style="margin-top: 12px;">
+          <button class="btn btn-secondary" onclick="saveSettingsWorkspace()">Salvar Diretório de Trabalho</button>
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeSettingsModal()">Fechar</button>
-        <button class="btn btn-primary" onclick="saveSettings()">Salvar Configurações</button>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL: EXECUTAR TAREFA -->
+<div id="modal-run" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-run')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">⚡ Nova Execução de Tarefa</span>
+      <button class="modal-close" onclick="closeModal('modal-run')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Instrução / Prompt para o Agente:</label>
+        <textarea id="modalRunPrompt" class="form-control" rows="4" placeholder="Ex: Crie um script python que faça backup de arquivos..."></textarea>
       </div>
     </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-run')">Cancelar</button>
+      <button class="btn btn-primary" onclick="submitModalRun(false)">Executar na Web ⚡</button>
+      <button class="btn btn-primary" style="background:var(--brand-dark)" onclick="submitModalRun(true)">Abrir no Terminal 💻</button>
+    </div>
   </div>
+</div>
 
-  <script src="app.js"></script>
+<!-- MODAL: COMANDO -->
+<div id="modal-command" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-command')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalCmdTitle">Salvar Comando</span>
+      <button class="modal-close" onclick="closeModal('modal-command')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="modalCmdId">
+      <div class="form-group">
+        <label>Nome do Comando:</label>
+        <input type="text" id="modalCmdName" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>Descrição:</label>
+        <input type="text" id="modalCmdDesc" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>Linha de Comando:</label>
+        <input type="text" id="modalCmdCli" class="form-control" placeholder='smartbusiners run "..."'>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-command')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveCommandForm()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PROMPT -->
+<div id="modal-prompt" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-prompt')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalPromptTitle">Salvar Template de Prompt</span>
+      <button class="modal-close" onclick="closeModal('modal-prompt')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="modalPromptId">
+      <div class="form-group">
+        <label>Título da Persona / Prompt:</label>
+        <input type="text" id="modalPromptName" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>Descrição Curta:</label>
+        <input type="text" id="modalPromptDesc" class="form-control">
+      </div>
+      <div class="form-group">
+        <label>Conteúdo do Prompt:</label>
+        <textarea id="modalPromptTemplate" class="form-control" rows="5"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-prompt')">Cancelar</button>
+      <button class="btn btn-primary" onclick="savePromptForm()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: TASK (KANBAN) -->
+<div id="modal-task" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-task')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTaskTitle">Nova Tarefa</span>
+      <button class="modal-close" onclick="closeModal('modal-task')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="modalTaskId">
+      <div class="form-group">
+        <label>Título da Tarefa:</label>
+        <input type="text" id="modalTaskTitleInput" class="form-control" placeholder="[DEV] Implementar nova feature...">
+      </div>
+      <div class="form-group">
+        <label>Descrição:</label>
+        <textarea id="modalTaskDescInput" class="form-control" rows="3"></textarea>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Status:</label>
+          <select id="modalTaskStatus" class="form-control">
+            <option value="open">📋 A Fazer</option>
+            <option value="in_progress">⚡ Em Progresso</option>
+            <option value="done">✔ Concluído</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Prioridade:</label>
+          <select id="modalTaskPriority" class="form-control">
+            <option value="low">Baixa</option>
+            <option value="normal" selected>Normal</option>
+            <option value="high">Alta</option>
+            <option value="critical">Crítica</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="btnDeleteTask" style="margin-right:auto;display:none" onclick="deleteTaskForm()">Excluir</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-task')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveTaskForm()">Salvar Tarefa</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
+
+<script src="app.js"></script>
 </body>
 </html>

@@ -5,30 +5,34 @@ from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
-# Carrega variáveis de ambiente de um arquivo .env se existir
 load_dotenv()
 
 CONFIG_DIR = Path.home() / ".smartbusiners"
 CONFIG_FILE = CONFIG_DIR / "config.json"
 SESSIONS_DIR = CONFIG_DIR / "sessions"
+EXECUTIONS_DIR = CONFIG_DIR / "executions"
+COMMANDS_FILE = CONFIG_DIR / "commands.json"
+PROMPTS_FILE = CONFIG_DIR / "prompts.json"
+SPRINTS_FILE = CONFIG_DIR / "sprints.json"
+COST_FILE = CONFIG_DIR / "cost_history.json"
 
 class SmartBusinersConfig(BaseModel):
     gemini_api_key: Optional[str] = Field(default=None, description="Google Gemini API Key")
     google_cloud_project: Optional[str] = Field(default=None, description="Google Cloud Project ID")
-    default_model: str = Field(default="gemini-2.5-flash", description="Default Gemini Model")
+    default_model: str = Field(default="gemini-3.7-flash", description="Default Gemini Model")
     temperature: float = Field(default=0.7, ge=0.0, le=2.0, description="Model Temperature")
     max_turns: int = Field(default=15, ge=1, le=50, description="Max agent turns per run")
+    action_mode: str = Field(default="interactive", description="Action mode: interactive, auto_approve, read_only")
     workspace: str = Field(default_factory=lambda: str(Path.cwd()), description="Active workspace path")
     enabled_tools: List[str] = Field(
         default=["run_command", "read_file", "write_file", "list_directory", "search_files", "get_workspace_info"],
         description="Active agent tools"
     )
-    auto_approve_tools: bool = Field(default=False, description="Auto-approve safe tool executions")
     gui_host: str = Field(default="127.0.0.1", description="GUI Host")
     gui_port: int = Field(default=8080, description="GUI Port")
 
 class ConfigManager:
-    """Gerencia configurações persistentes do SmartBusiners em ~/.smartbusiners/config.json."""
+    """Gerencia configurações persistentes do SmartBusiners."""
 
     def __init__(self):
         self._ensure_dirs()
@@ -37,6 +41,7 @@ class ConfigManager:
     def _ensure_dirs(self):
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
         SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
+        EXECUTIONS_DIR.mkdir(parents=True, exist_ok=True)
 
     def load_config(self) -> SmartBusinersConfig:
         data: Dict[str, Any] = {}
@@ -47,7 +52,6 @@ class ConfigManager:
             except Exception:
                 data = {}
 
-        # Prioridade para variáveis de ambiente
         env_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
         if env_key:
             data["gemini_api_key"] = env_key
