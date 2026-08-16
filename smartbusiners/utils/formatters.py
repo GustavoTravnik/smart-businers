@@ -1,10 +1,9 @@
 from rich.table import Table
 from rich.panel import Panel
-from rich.markdown import Markdown
 
 def format_banner() -> Panel:
     banner_text = """
-[bold cyan]⚡ SMARTBUSINERS AI ENGINE ⚡[/bold cyan]
+[bold cyan]* SMARTBUSINERS AI ENGINE *[/bold cyan]
 [dim]Plataforma Comercial de Agentes de IA em Python & Google Gemini[/dim]
     """
     return Panel(banner_text.strip(), border_style="cyan", expand=False)
@@ -16,7 +15,6 @@ def format_tools_table(tools_list) -> Table:
     table.add_column("Parâmetros Requeridos", style="magenta")
 
     for tool in tools_list:
-        props = tool.parameters.get("properties", {})
         req = tool.parameters.get("required", [])
         req_str = ", ".join(req) if req else "Nenhum"
         table.add_row(tool.name, tool.description, req_str)

@@ -9,6 +9,14 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.prompt import Prompt, Confirm
 
+# Garante UTF-8 no Windows
+if sys.platform == "win32":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    os.environ["PYTHONIOENCODING"] = "utf-8"
+
 from smartbusiners.core.config import config_manager
 from smartbusiners.core.auth import auth_manager
 from smartbusiners.core.tools import default_registry
@@ -22,7 +30,7 @@ app = typer.Typer(
     help="SmartBusiners - Sistema de IA CLI & Web Dashboard baseado em Google Gemini e Antigravity",
     add_completion=False
 )
-console = Console()
+console = Console(legacy_windows=False)
 
 @app.callback(invoke_without_command=True)
 def main_callback(ctx: typer.Context):
@@ -71,15 +79,15 @@ def chat(
 
     def stream_callback(event_type: str, data: dict):
         if event_type == "tool_call":
-            console.print(f"\n[bold yellow]⚡ Executando Ferramenta:[/bold yellow] [bold cyan]{data['tool']}[/bold cyan]")
+            console.print(f"\n[bold yellow]Executando Ferramenta:[/bold yellow] [bold cyan]{data['tool']}[/bold cyan]")
             console.print(f"[dim]Argumentos: {data['args']}[/dim]")
         elif event_type == "tool_result":
             out_preview = str(data['output'])
             if len(out_preview) > 300:
                 out_preview = out_preview[:300] + "... [truncado]"
-            console.print(f"[bold green]✔ Resultado:[/bold green] [dim]{out_preview}[/dim]\n")
+            console.print(f"[bold green]Resultado:[/bold green] [dim]{out_preview}[/dim]\n")
         elif event_type == "error":
-            console.print(f"[bold red]✖ Erro:[/bold red] {data['message']}")
+            console.print(f"[bold red]Erro:[/bold red] {data['message']}")
 
     while True:
         try:
@@ -118,11 +126,11 @@ def run_task(
     
     def cli_callback(event_type: str, data: dict):
         if event_type == "tool_call":
-            console.print(f"[yellow]⚡ [Tool][/yellow] [cyan]{data['tool']}[/cyan] -> [dim]{data['args']}[/dim]")
+            console.print(f"[yellow][Tool][/yellow] [cyan]{data['tool']}[/cyan] -> [dim]{data['args']}[/dim]")
         elif event_type == "tool_result":
-            console.print(f"[green]✔ [Result][/green] [dim]{str(data['output'])[:150]}[/dim]")
+            console.print(f"[green][Result][/green] [dim]{str(data['output'])[:150]}[/dim]")
         elif event_type == "error":
-            console.print(f"[red]✖ [Error][/red] {data['message']}")
+            console.print(f"[red][Error][/red] {data['message']}")
 
     with console.status("[bold cyan]Processando tarefa autônoma...[/bold cyan]", spinner="bouncingBar"):
         result = asyncio.run(engine.execute_task(prompt, callback=cli_callback))
