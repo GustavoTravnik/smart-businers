@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartBusiners AI - Professional Agentic Dashboard</title>
+  <meta name="description" content="Painel de controle e execução em tempo real do sistema SmartBusiners AI Engine em Python com Google Gemini.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon">⚡</div>
+        <div class="brand-text">
+          <h1>SmartBusiners <span class="badge">AI Engine</span></h1>
+          <span class="subtext">Google Gemini & Antigravity Powered</span>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <div class="status-indicator" id="authBadge" onclick="openAuthModal()">
+          <span class="dot yellow"></span>
+          <span class="status-text" id="authStatusText">Verificando Google API...</span>
+        </div>
+
+        <div class="workspace-pill" title="Clique para alterar workspace">
+          <span class="icon">📁</span>
+          <span class="ws-path" id="activeWorkspace">Carregando...</span>
+        </div>
+
+        <button class="btn btn-outline" id="btnCliHelp" onclick="openCliModal()">
+          <span class="icon">💻</span> Comandos CLI
+        </button>
+
+        <button class="btn btn-primary" id="btnSettings" onclick="openSettingsModal()">
+          <span class="icon">⚙</span> Configurações
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="main-body">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-section">
+          <div class="section-title">
+            <span>Sessões Recentes</span>
+            <button class="btn-icon" id="btnNewSession" title="Nova Conversa" onclick="startNewSession()">+</button>
+          </div>
+          <div class="session-list" id="sessionList">
+            <!-- Sessões dinâmicas -->
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="section-title">Explorador de Arquivos</div>
+          <div class="file-tree" id="fileTree">
+            <!-- Arquivos do workspace -->
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="section-title">Ferramentas Ativas</div>
+          <div class="tools-pills" id="toolsList">
+            <!-- Ferramentas -->
+          </div>
+        </div>
+      </aside>
+
+      <!-- Central View -->
+      <main class="content-area">
+        <!-- Tab Bar -->
+        <div class="view-tabs">
+          <button class="tab-btn active" data-tab="chatView">💬 Canvas do Agente</button>
+          <button class="tab-btn" data-tab="terminalView">📟 Terminal & Processos em Tempo Real</button>
+        </div>
+
+        <!-- Chat / Agent Canvas View -->
+        <div class="tab-content active" id="chatView">
+          <div class="chat-history" id="chatHistory">
+            <div class="welcome-card">
+              <div class="welcome-icon">🚀</div>
+              <h2>Bem-vindo ao SmartBusiners AI Engine</h2>
+              <p>Execute tarefas de desenvolvimento de software, automação de código, análise corporativa e comandos no terminal de forma autônoma ou interativa.</p>
+              <div class="preset-prompts">
+                <button class="preset-btn" onclick="usePreset('Inspecione a estrutura deste projeto e gere um relatório dos componentes principais.')">📊 Mapear Arquitetura</button>
+                <button class="preset-btn" onclick="usePreset('Crie um teste unitário abrangente para os módulos do projeto.')">🧪 Gerar Testes Unitários</button>
+                <button class="preset-btn" onclick="usePreset('Analise o código em busca de melhorias de performance e segurança.')">🛡 Auditoria de Código</button>
+                <button class="preset-btn" onclick="usePreset('Explique como executar o CLI e quais ferramentas estão disponíveis.')">💡 Guia do CLI</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Realtime Terminal View -->
+        <div class="tab-content" id="terminalView">
+          <div class="terminal-container">
+            <div class="terminal-header">
+              <div class="term-dots">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
+              </div>
+              <span class="term-title">smartbusiners-process-stream</span>
+              <button class="btn-clear-term" onclick="clearTerminal()">Limpar</button>
+            </div>
+            <div class="terminal-body" id="terminalOutput">
+              <div class="term-line info">[SISTEMA] SmartBusiners WebSocket Stream conectado. Pronto para execução.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prompt Bar -->
+        <div class="prompt-bar-container">
+          <div class="prompt-tools-bar">
+            <div class="model-select-wrapper">
+              <label for="modelSelect">Modelo:</label>
+              <select id="modelSelect">
+                <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Recomendado)</option>
+                <option value="gemini-2.5-pro">Gemini 2.5 Pro (Deep Reasoning)</option>
+                <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+              </select>
+            </div>
+
+            <div class="param-item">
+              <label>Temperatura: <span id="tempValue">0.7</span></label>
+              <input type="range" id="tempSlider" min="0" max="1" step="0.1" value="0.7" oninput="document.getElementById('tempValue').innerText = this.value">
+            </div>
+
+            <div class="status-indicator-mini" id="agentStatus">
+              <span class="dot green"></span> Pronto
+            </div>
+          </div>
+
+          <form class="prompt-input-form" id="promptForm" onsubmit="handleSendPrompt(event)">
+            <textarea 
+              id="promptInput" 
+              placeholder="Descreva a tarefa ou comando para o SmartBusiners executar..." 
+              rows="2"
+              onkeydown="handleKeyDown(event)"
+            ></textarea>
+            <button type="submit" class="btn btn-primary btn-send" id="btnSend">
+              <span>Executar</span> ⚡
+            </button>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal: Autenticação Google BYOK -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>🔑 Conectar Conta Google (BYOK)</h3>
+        <button class="btn-close" onclick="closeAuthModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>O SmartBusiners utiliza a sua conta Google (Google AI Studio ou Vertex AI). Todas as chamadas de IA e ferramentas utilizam a sua própria cota.</p>
+        
+        <div class="form-group">
+          <label for="apiKeyInput">Google Gemini API Key:</label>
+          <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="form-control">
+          <small>Obtenha gratuitamente sua chave no <a href="https://aistudio.google.com/" target="_blank">Google AI Studio</a>.</small>
+        </div>
+
+        <div id="authResultBox" class="alert-box" style="display:none;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAuthModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveApiKey()">Validar e Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Guia CLI -->
+  <div class="modal-overlay" id="cliModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>💻 Guia de Uso no Terminal (CLI)</h3>
+        <button class="btn-close" onclick="closeCliModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>Você pode invocar o SmartBusiners a qualquer momento diretamente no seu terminal ou PowerShell:</p>
+        <pre class="code-block"><code># Chat interativo contínuo
+smartbusiners chat
+
+# Executar uma tarefa autônoma
+smartbusiners run "Crie uma API REST em FastAPI para gerenciar produtos"
+
+# Configurar chave Google
+smartbusiners auth
+
+# Iniciar esta interface Web
+smartbusiners gui</code></pre>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="closeCliModal()">Entendi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Configurações -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>⚙ Configurações do Sistema</h3>
+        <button class="btn-close" onclick="closeSettingsModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="cfgWorkspace">Caminho do Workspace:</label>
+          <input type="text" id="cfgWorkspace" class="form-control">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeSettingsModal()">Fechar</button>
+        <button class="btn btn-primary" onclick="saveSettings()">Salvar Configurações</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
